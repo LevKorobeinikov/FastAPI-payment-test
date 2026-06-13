@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class Payment(Base):
-    __table_args__ = CheckConstraint('amount > 0', name='ck_payments_amount_positive')
+    __table_args__ = (CheckConstraint('amount > 0', name='ck_payments_amount_positive'),)
     id: Mapped[int] = mapped_column(primary_key=True)
     transaction_id: Mapped[str] = mapped_column(
         String(36),

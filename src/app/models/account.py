@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class Account(Base):
-    __table_args__ = CheckConstraint('balance >= 0', name='ck_accounts_balance_non_negative')
+    __table_args__ = (CheckConstraint('balance >= 0', name='ck_accounts_balance_non_negative'),)
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
         ForeignKey('users.id', ondelete='CASCADE'),

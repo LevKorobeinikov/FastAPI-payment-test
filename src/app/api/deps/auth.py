@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.api.deps.db import get_session
 from src.app.core.config import settings
-from src.app.crud.user import UserRepository
+from src.app.crud.user import CRUDUser
 from src.app.models.user import User
 from src.app.schemas.token import TokenPayload
 
@@ -38,7 +38,7 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
 ) -> User:
     user_id = _decode_token(token)
-    user = await UserRepository(session).get_by_id(user_id)
+    user = await CRUDUser(session).get_by_id(user_id)
     if user is None or not user.is_active:
         raise _CREDENTIALS_EXCEPTION
     return user
