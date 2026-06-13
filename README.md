@@ -21,7 +21,8 @@ API: http://localhost:8000/docs
 ## Local
 
 ```bash
-cp .env.example .env
+cp .env.example .
+# start PostgreSQL 
 createdb app
 make dev
 ```
