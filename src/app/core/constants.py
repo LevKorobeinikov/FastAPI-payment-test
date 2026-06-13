@@ -1,0 +1,11 @@
+SEED_USER_EMAIL = 'user@test.com'
+SEED_USER_FULL_NAME = 'TUser'
+SEED_USER_PASSWORD_HASH = (
+    '$pbkdf2-sha256$29000$GYMwJsQYA2AMgZAyBoCQEg$WPtlTO0wnOKqOs9GyPnntDDp.ih6onWRXu1hb/SAk5Q'
+)
+
+SEED_ADMIN_EMAIL = 'admin@test.com'
+SEED_ADMIN_FULL_NAME = 'TAdmin'
+SEED_ADMIN_PASSWORD_HASH = (
+    '$pbkdf2-sha256$29000$lhKiNIYQYixFiDEmhLC2Vg$eYxEPV.uduTc2cmomODUJxXR2.RzKaMvS553yOEPnDc'
+)
