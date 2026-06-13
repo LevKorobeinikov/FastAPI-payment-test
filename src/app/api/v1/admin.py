@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.app.api.deps.auth import require_admin
-from src.app.api.deps.db import get_session
+from src.app.core.session import get_db_session
 from src.app.models.user import User
 from src.app.schemas.user import (
     AdminRead,
@@ -32,7 +32,7 @@ async def get_admin_me(
 
 @router.get('/users', response_model=list[AdminRead])
 async def list_users(
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db_session),
 ) -> list[User]:
     return await UserService(session).list_users()
 
@@ -44,7 +44,7 @@ async def list_users(
 )
 async def create_user(
     payload: UserCreate,
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db_session),
 ) -> User:
     try:
         return await UserService(session).create_user(
@@ -67,7 +67,7 @@ async def create_user(
 async def update_user(
     user_id: int,
     payload: UserUpdate,
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db_session),
 ) -> User:
     try:
         return await UserService(session).update_user(
@@ -96,7 +96,7 @@ async def update_user(
 )
 async def delete_user(
     user_id: int,
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db_session),
     current_admin: User = Depends(require_admin),
 ) -> Response:
     if current_admin.id == user_id:

@@ -4,8 +4,8 @@ from jose import JWTError, jwt
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.api.deps.db import get_session
 from src.app.core.config import settings
+from src.app.core.session import get_db_session
 from src.app.crud.user import CRUDUser
 from src.app.models.user import User
 from src.app.schemas.token import TokenPayload
@@ -34,7 +34,7 @@ def _decode_token(token: str) -> int:
 
 
 async def get_current_user(
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db_session),
     token: str = Depends(oauth2_scheme),
 ) -> User:
     user_id = _decode_token(token)

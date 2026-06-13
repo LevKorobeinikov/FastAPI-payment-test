@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.api.deps.db import get_session
+from src.app.core.session import get_db_session
 from src.app.schemas.payment import (
     PaymentWebhookRequest,
     PaymentWebhookResponse,
@@ -26,7 +26,7 @@ router = APIRouter(
 )
 async def process_webhook(
     payload: PaymentWebhookRequest,
-    session: AsyncSession = Depends(get_session),
+    session: AsyncSession = Depends(get_db_session),
 ) -> PaymentWebhookResponse:
     try:
         processed, balance = await PaymentService(session).process_webhook(payload)
