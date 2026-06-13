@@ -13,7 +13,7 @@ Admin | `admin@test.com`  | `passWorDadmin`
 
 ```bash
 cp .env.example .env
-make app
+make up
 ```
 
 API: http://localhost:8000/docs
@@ -23,9 +23,7 @@ API: http://localhost:8000/docs
 ```bash
 cp .env.example .env
 createdb app
-uv sync
-uv run alembic upgrade head
-uv run uvicorn src.app.main:app --reload
+make dev
 ```
 
 API: http://localhost:8000/docs
