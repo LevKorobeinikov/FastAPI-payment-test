@@ -7,24 +7,34 @@ from src.app.schemas.payment import (
     PaymentWebhookResponse,
     PaymentWebhookStatus,
 )
-from src.app.services.exceptions import AccountOwnershipError, UserNotFoundError
+from src.app.services.exceptions import (
+    AccountOwnershipError,
+    InvalidPaymentSignatureError,
+    UserNotFoundError,
+)
 from src.app.services.payment import PaymentService
 
-router = APIRouter(prefix='/payments', tags=['payments'])
+router = APIRouter(
+    prefix='/payments',
+    tags=['payments'],
+)
 
 
-@router.post('/webhook', response_model=PaymentWebhookResponse)
+@router.post(
+    '/webhook',
+    response_model=PaymentWebhookResponse,
+)
 async def process_webhook(
     payload: PaymentWebhookRequest,
     session: AsyncSession = Depends(get_session),
 ) -> PaymentWebhookResponse:
-    if not PaymentService.verify_signature(payload):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Invalid signature',
-        )
     try:
         processed, balance = await PaymentService(session).process_webhook(payload)
+    except InvalidPaymentSignatureError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from None
     except UserNotFoundError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -36,7 +46,7 @@ async def process_webhook(
             detail=str(error),
         ) from None
     return PaymentWebhookResponse(
-        status=PaymentWebhookStatus.PROCESSED if processed else PaymentWebhookStatus.IGNORED,
+        status=(PaymentWebhookStatus.PROCESSED if processed else PaymentWebhookStatus.IGNORED),
         user_id=payload.user_id,
         account_id=payload.account_id,
         balance=balance,

@@ -11,3 +11,11 @@ class AccountOwnershipError(Exception):
 class EmailAlreadyExistsError(Exception):
     def __init__(self, message: str = 'User with this email already exists') -> None:
         super().__init__(message)
+
+
+class InvalidPaymentSignatureError(Exception):
+    def __init__(
+        self,
+        message: str = 'Invalid signature',
+    ) -> None:
+        super().__init__(message)

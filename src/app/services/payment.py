@@ -9,7 +9,11 @@ from src.app.crud.account import CRUDAccount
 from src.app.crud.payment import CRUDPayment
 from src.app.crud.user import CRUDUser
 from src.app.schemas.payment import PaymentWebhookRequest
-from src.app.services.exceptions import AccountOwnershipError, UserNotFoundError
+from src.app.services.exceptions import (
+    AccountOwnershipError,
+    InvalidPaymentSignatureError,
+    UserNotFoundError,
+)
 
 
 class PaymentService:
@@ -23,11 +27,24 @@ class PaymentService:
     def _amount_to_str(amount: Decimal) -> str:
         normalized = amount.normalize()
         if normalized == normalized.to_integral():
-            return str(normalized.quantize(Decimal('1')))
-        return format(normalized, 'f').rstrip('0').rstrip('.')
+            return str(
+                normalized.quantize(
+                    Decimal('1'),
+                ),
+            )
+        return (
+            format(
+                normalized,
+                'f',
+            )
+            .rstrip('0')
+            .rstrip('.')
+        )
 
     @staticmethod
-    def make_signature(payload: PaymentWebhookRequest) -> str:
+    def make_signature(
+        payload: PaymentWebhookRequest,
+    ) -> str:
         return sha256(
             f'{payload.account_id}'
             f'{PaymentService._amount_to_str(payload.amount)}'
@@ -37,7 +54,9 @@ class PaymentService:
         ).hexdigest()
 
     @staticmethod
-    def verify_signature(payload: PaymentWebhookRequest) -> bool:
+    def verify_signature(
+        payload: PaymentWebhookRequest,
+    ) -> bool:
         return hmac.compare_digest(
             PaymentService.make_signature(payload),
             payload.signature,
@@ -47,11 +66,17 @@ class PaymentService:
         self,
         payload: PaymentWebhookRequest,
     ) -> tuple[bool, Decimal]:
+        if not self.verify_signature(payload):
+            raise InvalidPaymentSignatureError()
         async with self.session.begin():
-            user = await self.user_repo.get_by_id(payload.user_id)
+            user = await self.user_repo.get_by_id(
+                payload.user_id,
+            )
             if user is None:
                 raise UserNotFoundError()
-            account = await self.account_repo.get_by_id(payload.account_id)
+            account = await self.account_repo.get_by_id(
+                payload.account_id,
+            )
             if account is None:
                 account = await self.account_repo.create_with_id(
                     account_id=payload.account_id,
@@ -60,12 +85,17 @@ class PaymentService:
             if account.user_id != payload.user_id:
                 raise AccountOwnershipError()
             is_new = await self.payment_repo.create_unique(
-                transaction_id=str(payload.transaction_id),
+                transaction_id=str(
+                    payload.transaction_id,
+                ),
                 user_id=payload.user_id,
                 account_id=payload.account_id,
                 amount=payload.amount,
             )
             if not is_new:
                 return False, account.balance
-            updated_account = await self.account_repo.add_balance(account, payload.amount)
+            updated_account = await self.account_repo.add_balance(
+                account,
+                payload.amount,
+            )
             return True, updated_account.balance
